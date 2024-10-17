@@ -1,0 +1,27 @@
+{
+    "id": "D8C6F1C5",
+    "path": "E:/LUO-lab/生信分析学习用文件/1_LUO_LAB_project/get_specific_gene_set/for_hsf5/heatmap_circle_total.R",
+    "project_path": "for_hsf5/heatmap_circle_total.R",
+    "type": "r_source",
+    "hash": "337367804",
+    "contents": "",
+    "dirty": false,
+    "created": 1721193997486.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "116,0",
+        "scrollLine": "85"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1721222363,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1721222363862,
+    "read_only": false,
+    "read_only_alternatives": []
+}

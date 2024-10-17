@@ -1,0 +1,69 @@
+
+library(VennDiagram)
+
+
+#获得P16HSF5_DEG_down_unique_mgi_symbol
+P16HSF5_DEG_down <- read.csv("P16_DEG_down_FC0.6.csv")
+P16HSF5_DEG_down$Row.names <- gsub("\\..*", "", P16HSF5_DEG_down$Row.names)
+head(P16HSF5_DEG_down)
+
+library('biomaRt')
+ensembl107 <- useEnsembl(biomart = 'genes', 
+                         dataset = 'mmusculus_gene_ensembl',
+                         version = 107)
+#获取ID
+my_ensembl_gene_id_P16HSF5_DEG_down <- P16HSF5_DEG_down$Row.names
+option_info_P16HSF5_DEG_down<- getBM(
+  attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
+  filters = 'ensembl_gene_id',
+  values = my_ensembl_gene_id_P16HSF5_DEG_down,
+  mart = ensembl107)
+colnames(P16HSF5_DEG_down)[3] <- "ensembl_gene_id"
+head(P16HSF5_DEG_down)
+P16HSF5_DEG_down<-merge(P16HSF5_DEG_down,option_info_P16HSF5_DEG_down,by="ensembl_gene_id")
+head(P16HSF5_DEG_down)
+
+P16HSF5_DEG_down_unique_mgi_symbol <- unique(na.omit(P16HSF5_DEG_down$mgi_symbol))
+
+
+#获得P16HSF5_DEG_up_unique_mgi_symbol
+P16HSF5_DEG_up <- read.csv("../P16_DEG_up.csv")
+P16HSF5_DEG_up$Row.names <- gsub("\\..*", "", P16HSF5_DEG_up$Row.names)
+head(P16HSF5_DEG_up)
+
+library('biomaRt')
+ensembl107 <- useEnsembl(biomart = 'genes', 
+                         dataset = 'mmusculus_gene_ensembl',
+                         version = 107)
+#获取ID
+my_ensembl_gene_id_P16HSF5_DEG_up <- P16HSF5_DEG_up$Row.names
+option_info_P16HSF5_DEG_up<- getBM(
+  attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
+  filters = 'ensembl_gene_id',
+  values = my_ensembl_gene_id_P16HSF5_DEG_up,
+  mart = ensembl107)
+colnames(P16HSF5_DEG_up)[3] <- "ensembl_gene_id"
+head(P16HSF5_DEG_up)
+P16HSF5_DEG_up<-merge(P16HSF5_DEG_up,option_info_P16HSF5_DEG_up,by="ensembl_gene_id")
+head(P16HSF5_DEG_up)
+
+P16HSF5_DEG_up_unique_mgi_symbol <- unique(na.omit(P16HSF5_DEG_up$mgi_symbol))
+
+
+MIWI_DEG_down <- read.csv("Miwi_null_DEG_knockout_vs_control_down.csv")
+MIWI_DEG_up <- read.csv("Miwi_null_DEG_knockout_vs_control_up.csv")
+
+# 提取MIWI_DEG_down中的mgi_symbol列并删除NA值
+MIWI_KO_down_unique_mgi <- unique(na.omit(MIWI_DEG_down$mgi_symbol))
+MIWI_KO_up_unique_mgi <- unique(na.omit(MIWI_DEG_up$mgi_symbol))
+
+
+venn.diagram(list(P16_H5_KO_up = P16HSF5_DEG_up_unique_mgi_symbol, MIWI_KO_up =MIWI_KO_up_unique_mgi ), 
+             fill = c("red2", "royalblue"),
+             cat.default.pos = "text", 
+             cex = 1, filename = "MIWI_P16_up.png")
+
+venn.diagram(list(P16_H5_KO_down = P16HSF5_DEG_down_unique_mgi_symbol,MIWI_KO_down =MIWI_KO_down_unique_mgi ), 
+             fill = c("red2", "royalblue"),
+             cat.default.pos = "text", 
+             cex = 1, filename = "MIWI_P16_down.tiff")

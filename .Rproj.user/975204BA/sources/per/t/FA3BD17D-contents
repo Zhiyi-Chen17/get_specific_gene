@@ -1,0 +1,148 @@
+library(clusterProfiler)
+library(org.Mm.eg.db)
+library(biomaRt)
+library(ggplot2)
+
+#获得P16HSF5_DEG_down_unique_mgi_symbol
+P16HSF5_DEG_down <- read.csv("P16_DEG_down_FC0.6.csv")
+P16HSF5_DEG_down$Row.names <- gsub("\\..*", "", P16HSF5_DEG_down$Row.names)
+head(P16HSF5_DEG_down)
+
+library('biomaRt')
+ensembl107 <- useEnsembl(biomart = 'genes', 
+                         dataset = 'mmusculus_gene_ensembl',
+                         version = 107)
+#获取ID
+my_ensembl_gene_id_P16HSF5_DEG_down <- P16HSF5_DEG_down$Row.names
+option_info_P16HSF5_DEG_down<- getBM(
+  attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
+  filters = 'ensembl_gene_id',
+  values = my_ensembl_gene_id_P16HSF5_DEG_down,
+  mart = ensembl107)
+colnames(P16HSF5_DEG_down)[3] <- "ensembl_gene_id"
+head(P16HSF5_DEG_down)
+P16HSF5_DEG_down<-merge(P16HSF5_DEG_down,option_info_P16HSF5_DEG_down,by="ensembl_gene_id")
+head(P16HSF5_DEG_down)
+
+P16HSF5_DEG_down_unique_mgi_symbol <- unique(na.omit(P16HSF5_DEG_down$mgi_symbol))
+P16HSF5_DEG_down_unique_entrezid <- unique(na.omit(P16HSF5_DEG_down$entrezgene_id))
+
+
+HSF5_CUTTAG_GENE <- read.csv("HSF5_CUTTAG_GENE.CSV")
+
+head(HSF5_CUTTAG_GENE)
+
+library('biomaRt')
+ensembl107 <- useEnsembl(biomart = 'genes', 
+                         dataset = 'mmusculus_gene_ensembl',
+                         version = 107)
+#获取ID
+my_ensembl_gene_id_HSF5_CUTTAG_GENE <- HSF5_CUTTAG_GENE$ENSEMBL
+option_info_HSF5_CUTTAG_GENE<- getBM(
+  attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
+  filters = 'ensembl_gene_id',
+  values = my_ensembl_gene_id_HSF5_CUTTAG_GENE,
+  mart = ensembl107)
+colnames(HSF5_CUTTAG_GENE)[2] <- "ensembl_gene_id"
+head(HSF5_CUTTAG_GENE)
+HSF5_CUTTAG_GENE<-merge(HSF5_CUTTAG_GENE,option_info_HSF5_CUTTAG_GENE,by="ensembl_gene_id")
+head(HSF5_CUTTAG_GENE)
+
+HSF5_CUTTAG_GENE_unique_mgi_symbol <- unique(na.omit(HSF5_CUTTAG_GENE$mgi_symbol))
+HSF5_CUTTAG_GENE_unique_entrezid <- unique(na.omit(HSF5_CUTTAG_GENE$geneId))
+
+
+
+#取交集、补集
+cuttag_and_P16_entrezids <- intersect(P16HSF5_DEG_down_unique_entrezid,HSF5_CUTTAG_GENE_unique_entrezid)
+P16HSF5_not_cuttag_entrezids <- setdiff(P16HSF5_DEG_down_unique_entrezid,HSF5_CUTTAG_GENE_unique_entrezid)
+cuttag_not_P16HSF5_entrezids <- setdiff(HSF5_CUTTAG_GENE_unique_entrezid,P16HSF5_DEG_down_unique_entrezid)
+
+
+cuttag_and_P16_mgi <- intersect(P16HSF5_DEG_down_unique_mgi_symbol,HSF5_CUTTAG_GENE_unique_mgi_symbol)
+P16HSF5_not_cuttag_mgi <- setdiff(P16HSF5_DEG_down_unique_mgi_symbol,HSF5_CUTTAG_GENE_unique_mgi_symbol)
+cuttag_not_P16HSF5_mgi<- setdiff(HSF5_CUTTAG_GENE_unique_mgi_symbol,P16HSF5_DEG_down_unique_mgi_symbol)
+
+write.table (cuttag_and_P16_entrezids, file ="cuttag_and_P16_entrezids.txt", sep ="", row.names =F, col.names =F, quote =TRUE)                         
+write.table (P16HSF5_not_cuttag_entrezids, file ="P16HSF5_not_cuttag_entrezids.txt", sep ="", row.names =F, col.names =F, quote =TRUE)                         
+write.table (cuttag_not_P16HSF5_entrezids, file ="cuttag_not_P16HSF5_entrezids.txt", sep ="", row.names =F, col.names =F, quote =TRUE)                         
+
+write.table (cuttag_and_P16_mgi, file ="cuttag_and_P16_mgi.txt", sep ="", row.names =F, col.names =F, quote =TRUE)                         
+write.table (P16HSF5_not_cuttag_mgi, file ="P16HSF5_not_cuttag_mgi.txt", sep ="", row.names =F, col.names =F, quote =TRUE)   
+write.table (cuttag_not_P16HSF5_mgi, file ="cuttag_not_P16HSF5_mgi.txt", sep ="", row.names =F, col.names =F, quote =TRUE)   
+
+
+
+
+
+#GO分析
+#cuttag_and_P16
+GO_cuttag_and_P16<-enrichGO(gene = cuttag_and_P16_entrezids,
+                            OrgDb = org.Mm.eg.db,
+                            ont = "ALL",
+                            pAdjustMethod = "BH",
+                            pvalueCutoff = 0.05,
+                            qvalueCutoff = 0.05)
+
+
+EGO_cuttag_and_P16<- setReadable(GO_cuttag_and_P16, 'org.Mm.eg.db', 'ENTREZID')
+write.csv(EGO_cuttag_and_P16@result, file = "GO_cuttag_and_P16.csv")
+
+tiff("GO_cuttag_and_P16.tif", res = 600, compression = "lzw", width = 10, height = 10, units = "in")  
+
+barplot(GO_cuttag_and_P16, font.size=9.5, showCategory=10, 
+        split="ONTOLOGY",title=expression(paste(bold("Downregulated genes in "),
+                                                bolditalic("cuttag_and_P16"), bold(" KO"))))+facet_grid(ONTOLOGY~., scale="free") 
+#dotplot(GO_down, font.size=9.5, showCategory=10, split="ONTOLOGY",title=expression(paste(bold("Downregulated genes in "), bolditalic("Hsf5"), bold(" KO"))))+facet_grid(ONTOLOGY~., scale="free") #GO????????ͼ,fig2
+dev.off()
+
+
+
+#P16HSF5_not_cuttag
+GO_P16HSF5_not_cuttag<-enrichGO(gene = P16HSF5_not_cuttag_entrezids,
+                                OrgDb = org.Mm.eg.db,
+                                ont = "ALL",
+                                pAdjustMethod = "BH",
+                                pvalueCutoff = 0.05,
+                                qvalueCutoff = 0.05)
+
+
+EGO_P16HSF5_not_cuttag<- setReadable(GO_P16HSF5_not_cuttag, 'org.Mm.eg.db', 'ENTREZID')
+write.csv(EGO_P16HSF5_not_cuttag@result, file = "GO_P16HSF5_not_cuttag.csv")
+
+tiff("GO_P16HSF5_not_cuttag.tif", res = 600, compression = "lzw", width = 10, height = 10, units = "in")  
+
+barplot(GO_P16HSF5_not_cuttag, font.size=9.5, showCategory=10, 
+        split="ONTOLOGY",title=expression(paste(bold("Downregulated genes in "),
+                                                bolditalic("P16HSF5_not_cuttag"), bold(" KO"))))+facet_grid(ONTOLOGY~., scale="free") 
+#dotplot(GO_down, font.size=9.5, showCategory=10, split="ONTOLOGY",title=expression(paste(bold("Downregulated genes in "), bolditalic("Hsf5"), bold(" KO"))))+facet_grid(ONTOLOGY~., scale="free") #GO????????ͼ,fig2
+dev.off()
+
+
+#保存子集
+P16HSF5_DEG_down <- read.csv("P16_DEG_down_FC0.6.csv")
+P16HSF5_DEG_down$ensembl<-P16HSF5_DEG_down$Row.names
+P16HSF5_DEG_down$Row.names <- gsub("\\..*", "", P16HSF5_DEG_down$Row.names)
+head(P16HSF5_DEG_down)
+
+#获取ID
+my_ensembl_gene_id_P16HSF5_DEG_down <- P16HSF5_DEG_down$Row.names
+option_info_P16HSF5_DEG_down<- getBM(
+  attributes = c("ensembl_gene_id","mgi_symbol"),
+  filters = 'ensembl_gene_id',
+  values = my_ensembl_gene_id_P16HSF5_DEG_down,
+  mart = ensembl107)
+colnames(P16HSF5_DEG_down)[3] <- "ensembl_gene_id"
+colnames(P16HSF5_DEG_down)[17] <- "Row.names"
+
+head(P16HSF5_DEG_down)
+P16HSF5_DEG_down<-merge(P16HSF5_DEG_down,option_info_P16HSF5_DEG_down,by="ensembl_gene_id")
+head(P16HSF5_DEG_down)
+
+subset_cuttag_and_P16 <- P16HSF5_DEG_down[P16HSF5_DEG_down$mgi_symbol %in% cuttag_and_P16_mgi, ]  
+subset_P16HSF5_not_cuttag <- P16HSF5_DEG_down[P16HSF5_DEG_down$mgi_symbol %in% P16HSF5_not_cuttag_mgi , ]  
+
+ 
+write.csv(subset_cuttag_and_P16,file = "subset_cuttag_and_P16.csv",row.names = F)
+write.csv(subset_P16HSF5_not_cuttag,file = "subset_P16HSF5_not_cuttag.csv",row.names = F)
+

@@ -1,0 +1,26 @@
+{
+    "id": "DD75F68C",
+    "path": "E:/LUO-lab/生信分析学习用文件/1_LUO_LAB_project/get_specific_gene_set/for_hsf5/heatmap.R",
+    "project_path": "for_hsf5/heatmap.R",
+    "type": "r_source",
+    "hash": "463909389",
+    "contents": "",
+    "dirty": false,
+    "created": 1721188857340.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "41,102",
+        "scrollLine": "19"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1721029783,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1721029783,
+    "read_only": false,
+    "read_only_alternatives": []
+}
